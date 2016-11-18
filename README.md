@@ -1,7 +1,7 @@
-# LuRiCheng
+# Java
 TankWar
 坦克大战
-练手用 写的很搓
-Ai完全就是随机数 决定坦克下一步干啥....
+刚学java 练手用 写的很搓
+awt.Graphics实现的
 
 wasd移动,j发射炮弹
