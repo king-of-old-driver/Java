@@ -1,9 +1,9 @@
 package tank;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Random;
 
@@ -14,7 +14,7 @@ import java.util.Random;
 public class Window extends JFrame{
 	final private int width=1500;
 	final private int high=800;
-	final private int otherTankNumber=5;
+	final private int otherTankNumber=6;
 	private int gameFlag=0;
 	private Tank myTank;
 	private LinkedList<Bullet> bulletList=new LinkedList<Bullet>();
@@ -24,6 +24,7 @@ public class Window extends JFrame{
 	private WinThread winThread;
 	private TankAi tanAi;
 	private CheckHit checkHit;
+	private Control control;
 
 	public Window(){
 		super("tank");
@@ -36,7 +37,13 @@ public class Window extends JFrame{
 			public void keyPressed(KeyEvent keyEvent) {
 				super.keyPressed(keyEvent);
 				char key = Character.toUpperCase(keyEvent.getKeyChar());
-				myTank.getOrder(key,width,high,bulletList);
+				if(key=='J'&&control.canFire) {
+					control.canFire=false;
+					myTank.getOrder(key, width, high, bulletList);
+				}
+				if(key!='J'){
+					myTank.getOrder(key, width, high, bulletList);
+				}
 			}
 		});
 
@@ -54,21 +61,27 @@ public class Window extends JFrame{
 		myTank.setWheelColor(Color.MAGENTA);
 		myTank.setBulletColor(Color.pink);
 
-		tanAi=new TankAi(tankList,bulletList,width,high);//control the other tanks
+		tanAi=new TankAi(tankList,bulletList,myTank,width,high);//control the other tanks
 		checkHit=new CheckHit(tankList,bulletList,myTank,width,high);//check the bullet had hitted the tank?
 		winThread=new WinThread();//check game is over and repaint
+		control=new Control();
 
-		setBoss();
 
+		setBoss(0);
+		setBoss(1);
+		myTank.setStep(20);
+
+		control.start();
 		winThread.start();
 		checkHit.start();
 		tanAi.start();
 		stopGame=false;
 	}
 
-	private void setBoss(){
+	private void setBoss(int index){
 		//set BOSS
-		Tank boss=tankList.get(0);
+		Tank boss=tankList.get(index);
+		boss.setStep(50);
 		boss.setHP(500);
 		boss.setBodyColor(Color.RED);
 		boss.setBulletColor(Color.RED);
@@ -86,17 +99,25 @@ public class Window extends JFrame{
 		}
 		myTank.setHP(100);
 		//set BOSS
-		Tank boss=tankList.get(0);
-		boss.setHP(500);
-		boss.setBodyColor(Color.RED);
-		boss.setBulletColor(Color.RED);
-		boss.setWheelColor(Color.RED);
-		boss.setGunBarrelColor(Color.RED);
-		boss.smaller();
+		setBoss(0);
+		setBoss(1);
 		stopGame=false;
 	}
 
-	class WinThread extends Thread{
+	private class Control extends Thread{
+		final private int SLEEP_TIME=250;
+		private boolean canFire=true;
+		public void run(){
+			while(true){
+				try {
+					sleep(SLEEP_TIME);
+				} catch (InterruptedException e) {}
+				canFire=true;
+			}
+		}
+	}
+
+	private class WinThread extends Thread{
 		public void run(){
 			while(true){
 				checkGameOver();
@@ -116,11 +137,15 @@ public class Window extends JFrame{
 		g.setColor(Color.darkGray);
 		g.fillRect(0,0,width,high);
 		myTank.paintTank(g);
-		for(Tank nowTank:tankList){
-			nowTank.paintTank(g);
+		synchronized (tankList) {
+			for (Tank nowTank : tankList) {
+				nowTank.paintTank(g);
+			}
 		}
-		for(Bullet nowBullet:bulletList){
-			nowBullet.paintBullet(g);
+		synchronized (bulletList) {
+			for (Bullet nowBullet : bulletList) {
+				nowBullet.paintBullet(g);
+			}
 		}
 	}
 

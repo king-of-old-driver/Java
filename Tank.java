@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class Tank{
 	private int x,y,measure;
-	private int step=20;
+	private int step=35;
 	private int measureStep=10;
 	private int dir=3;
 	private final int maxmeasure=100;
@@ -33,7 +33,7 @@ public class Tank{
 
 	private void changePos(char key,int width,int high){
 		switch (key){
-			case 'A'://上下左右
+			case 'A'://0123--->上下左右
 				dir = 2;
 				x -= step;
 				break;
@@ -102,6 +102,10 @@ public class Tank{
 	}
 	public int getY(){
 		return y;
+	}
+
+	public void setStep(int step){
+		this.step=step;
 	}
 
 	public Tank(int x,int y){
