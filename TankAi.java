@@ -6,33 +6,19 @@ import java.util.Random;
 /**
  * Created by lu on 16-11-14.
  */
-public class TankAi extends Thread{
-	final char FIRE='J',UP='W',DOWN='S',LEFT='A',RIGHT='D';
-	final char[]keys={'A','D','S','W','J'};
+public class TankAi extends Thread implements WinSize{
+	final int FIRE=8,UP=0,UP_RIGHT=1,RIGHT=2,RIGHT_DOWN=3,DOWN=4,LEFT_DOWN=5,LEFT=6,UP_LEFT=7;
 	final Random random=new Random();
-	private List<Tank>tankList;
-	private List<Bullet>bulletList;
-	private int width,high;
 	final private int SLEEP_TIME=500;
-	private Tank myTank;
-	public TankAi(List<Tank> tankList,List<Bullet>bulletList,int width,int high){
-		this.tankList=tankList;
-		this.bulletList=bulletList;
-		this.width=width;
-		this.high=high;
-	}
-	public TankAi(List<Tank> tankList,List<Bullet>bulletList,Tank myTank,int width,int high){
-		this.tankList=tankList;
-		this.bulletList=bulletList;
-		this.width=width;
-		this.high=high;
-		this.myTank=myTank;
+	private Win win;
+	public TankAi(Win win){
+		this.win=win;
 	}
 	public void run(){
 		while(true) {
-			for (Tank nowTank : tankList) {
-				char key = getKey(nowTank);
-				nowTank.getOrder(key,width,high,bulletList);
+			for (Tank nowTank : win.tankList) {
+				//nowTank.getOrder(getRandomOrder());
+				nowTank.getOrder(getOrder(nowTank));
 			}
 			try {
 				sleep(SLEEP_TIME);
@@ -43,27 +29,33 @@ public class TankAi extends Thread{
 		}
 	}
 
-	private char getKey(Tank tank){
-		if(myTank==null)
-			return getRandomKey();
+	private int getRandomOrder(){
+		return random.nextInt(9);
+	}
+
+	private int getOrder(Tank tank){
+		if(win.myTank==null)
+			return getRandomOrder();
 		final int DT=50;
 		int x=tank.getX(),y=tank.getY(),dir=tank.getDir();
-		int tarX=myTank.getX(),tarY=myTank.getY();
+		int tarX=win.myTank.getX(),tarY=win.myTank.getY();
 		int dtX=Math.abs(tarX-x),dtY=Math.abs(tarY-y);
+		//double dtTmp=(double)(y-tarY)/(x-tarY);
+
 		if(dtX<=DT){//和目标处于同一x水平线上
 			if(tarY>y){
-				return dir==1?FIRE:DOWN;
+				return dir==DOWN?FIRE:DOWN;
 			}
 			else{
-				return dir==0?FIRE:UP;
+				return dir==UP?FIRE:UP;
 			}
 		}
 		if(dtY<=DT){
 			if(tarX>x){//目标在右边
-				return dir==3?FIRE:RIGHT;
+				return dir==RIGHT?FIRE:RIGHT;
 			}
 			else{//左边
-				return dir==2?FIRE:LEFT;
+				return dir==LEFT?FIRE:LEFT;
 			}
 		}
 		if(dtX<dtY){
@@ -73,7 +65,5 @@ public class TankAi extends Thread{
 			return tarY>y?DOWN:UP;
 		}
 	}
-	private char getRandomKey(){
-		return keys[random.nextInt(keys.length)];
-	}
+
 }
